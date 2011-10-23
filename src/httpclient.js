@@ -40,9 +40,6 @@ var methods = ['get', 'post', 'head', 'put', 'del', 'trace', 'options', 'connect
    *   Object to compare with the response of the http call
    * @param {Function} [cb=undefined]
    *   Callback that will be called after the http call. Receives the http response object.
-   *
-   * @returns
-   *   Testosterone
    */
 methods.forEach(function(method) {    
     HttpClient.prototype[method] = function(assert, path, req, res, cb) {
@@ -74,7 +71,9 @@ methods.forEach(function(method) {
 
         //Don't add to querystring if POST or PUT
         if (['post', 'put'].indexOf(method) === -1) {
-            if (req.data) fullPath += '?' + querystring.stringify(req.data);
+            var data = req.data;
+            
+            if (data) fullPath += '?' + querystring.stringify(data);
         }
         
         var options = {
@@ -89,7 +88,16 @@ methods.forEach(function(method) {
         
         //Write POST & PUTdata
         if (['post', 'put'].indexOf(method) != -1) {
-            if (req.data) request.write(req.data);
+            var data = req.data || req.body;
+            
+            if (data) {
+                if (typeof data == 'object') {
+                    request.setHeader('content-type', 'application/json');
+                    request.write(JSON.stringify(data));
+                } else {
+                    request.write(data);
+                }
+            }
         }
         
         //Send

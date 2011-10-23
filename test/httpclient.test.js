@@ -110,6 +110,38 @@ exports.request = {
             server2.close();
             test.done();
         });
+    },
+    
+    'POST with data as object': function(test) {
+        test.expect(3);
+        
+        var dataToSend = { name: 'Charlie' };
+        
+        var server2 = http.createServer(function(req, res) {
+            var data = '';
+            req.on('data', function(chunk) {
+                data += chunk;
+            });
+            
+            req.on('end', function() {
+                test.equal(req.method, 'POST');
+                test.equal(req.url, '/form');
+                test.equal(data, JSON.stringify(dataToSend));
+            
+                res.writeHead(200, {'content-type': 'text/plain'});
+                res.end('ok');
+            });
+        });
+        server2.listen(server2Port, '127.0.0.1');
+        
+        var api2 = new HttpClient({
+            port: server2Port
+        });
+        
+        api2.post({}, '/form', { data: dataToSend }, {}, function(res) {
+            server2.close();
+            test.done();
+        });
     }
 };
 
