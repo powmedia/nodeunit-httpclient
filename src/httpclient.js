@@ -60,11 +60,19 @@ methods.forEach(function(method) {
                 res = req;
                 req = {};
             }
-            
-            //Also accepted: 
-            //(assert, path, req, res)
-            //(assert, path, req, res, cb)
         }
+        
+        //(assert, path, req, cb)
+        if (arguments.length == 4) {
+            if (typeof res == 'function') {
+                cb = res;
+                res = {};
+            }
+        }
+
+        //Also accepted: 
+        //(assert, path, req, res)
+        //(assert, path, req, res, cb)
         
         //Generate path based on base path, route path and querystring params
         var fullPath = this.path + path;
@@ -117,7 +125,7 @@ methods.forEach(function(method) {
             response.on('end', function() {
                 //Add parsed JSON
                 if (response.headers['content-type'].indexOf('application/json') != -1) {
-                    response.json = JSON.parse(response.body);
+                    response.data = JSON.parse(response.body);
                 }
                 
                 //Run tests on the response
@@ -139,9 +147,9 @@ methods.forEach(function(method) {
                         assert.equal(response.body, res.body);
                     }
                     
-                    //Json
-                    if (res.json) {
-                        assert.deepEqual(response.json, res.json);
+                    //JSON data
+                    if (res.data) {
+                        assert.deepEqual(response.data, res.data);
                     }
                 })();
                 

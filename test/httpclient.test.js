@@ -10,17 +10,17 @@ var http = require('http');
     var server = http.createServer(function(req, res) {
         var status = 200,
             headers = { 'content-type': 'application/json' },
-            json = {};
+            data = {};
         
         switch (req.url) {
             case '/user' :
-                json = { name: 'Charlie' };
+                data = { name: 'Charlie' };
                 break;
         }
         
         res.writeHead(status, headers);
         
-        res.end(JSON.stringify(json));
+        res.end(JSON.stringify(data));
     });
     server.listen(serverPort, '127.0.0.1');
 })();
@@ -147,11 +147,11 @@ exports.request = {
 
 exports.main = {
     
-    'adds parsed json to the response': function(test) {
+    'adds parsed json to the response.data': function(test) {
         test.expect(1);
         
         api.get(test, '/user', function(res) {
-            test.deepEqual(res.json, { name: 'Charlie' });
+            test.deepEqual(res.data, { name: 'Charlie' });
             test.done();
         });
     }
@@ -214,22 +214,22 @@ exports.response = {
         api.get(mockTest, '/user', { body: body });
     },
     
-    'json': function(test) {
+    'data': function(test) {
         test.expect(2);
         
-        var json = { name: 'Charlie' };
+        var data = { name: 'Charlie' };
         
         var mockTest = {
             deepEqual: function(actual, expected) {
-                test.equal(expected, json);
-                test.equal(expected, json);
+                test.equal(expected, data);
+                test.equal(expected, data);
             },
             done: function() {
                 test.done();
             }
         };
         
-        api.get(mockTest, '/user', { json: json });
+        api.get(mockTest, '/user', { data: data });
     }
 }
 
