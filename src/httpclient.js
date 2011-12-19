@@ -130,6 +130,9 @@ methods.forEach(function(method) {
                 
                 //Run tests on the response
                 (function testResponse() {
+                    //Can pass in falsy value to prevent running tests
+                    if (!assert) return;
+                    
                     //Status code
                     var status = res.status || self.status;
                     if (status) {

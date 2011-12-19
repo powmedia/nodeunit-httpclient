@@ -154,6 +154,15 @@ exports.main = {
             test.deepEqual(res.data, { name: 'Charlie' });
             test.done();
         });
+    },
+    
+    'doesnt run tests if falsey value passed instead of assert object': function(test) {
+        test.expect(0);
+        
+        api.get(null, '/user', {}, { status: 'foobar' }, function(res) {
+            //There would have been an assertion error based on the status code if tests were run
+            test.done();
+        });
     }
 };
 
