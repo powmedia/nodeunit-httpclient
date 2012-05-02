@@ -126,9 +126,9 @@ methods.forEach(function(method) {
                 //Add parsed JSON
                 var contentType = response.headers['content-type'];
                 if (contentType && contentType.indexOf('application/json') != -1) {
-                    if (!response.body) return;
-                    
-                    response.data = JSON.parse(response.body);
+                    if (typeof response.body != 'undefined') {
+                        response.data = JSON.parse(response.body);
+                    }
                 }
                 
                 //Run tests on the response
