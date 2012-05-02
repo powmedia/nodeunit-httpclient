@@ -49,3 +49,9 @@ Usage
         });
     };
     
+
+Changelog
+---------
+
+0.2.0
+- Handle 204 No Content responses
