@@ -80,6 +80,26 @@ exports.request = {
             test.done();
         });
     },
+
+    'GET with 204 no content': function(test) {
+        var server2 = http.createServer(function(req, res) {            
+            res.writeHead(204);
+            res.end();
+        });
+        server2.listen(server2Port, '127.0.0.1');
+        
+        var api2 = new HttpClient({
+            port: server2Port,
+            path: '/api'
+        });
+        
+        api2.get({}, '/', function(res) {
+            test.same(res.data, undefined);
+
+            server2.close();
+            test.done();
+        });
+    },
     
     'POST with data': function(test) {
         test.expect(4);
