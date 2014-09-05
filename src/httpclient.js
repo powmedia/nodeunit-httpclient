@@ -8,6 +8,7 @@ var http = require('http'),
  *                      host ('localhost')
  *                      port (80)
  *                      path ('')       - Base path URL e.g. '/api'
+ *                      reqHeaders ({}) - Headers to send with every request.
  *                      headers ({})    - Test that these headers are present on every response (unless overridden)
  *                      status (null)   - Test that every response has this status (unless overridden)
  */
@@ -18,6 +19,7 @@ var HttpClient = module.exports = function(options) {
     this.port = options.port || 80;
     this.path = options.path || '';
     this.headers = options.headers || {};
+    this.reqHeaders = options.reqHeaders || {};
     this.status = options.status;
 }
 
@@ -100,7 +102,9 @@ methods.forEach(function(method) {
 
             if (data) {
                 if (typeof data == 'object') {
-                    request.setHeader('content-type', 'application/json');
+                    if (typeof this.reqHeaders['content-type'] === 'undefined') {
+                      request.setHeader('content-type', 'application/json');
+                    }
                     request.write(JSON.stringify(data));
                 } else {
                     request.write(data);
