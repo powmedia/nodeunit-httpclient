@@ -5,6 +5,7 @@ var http = require('http'),
 
 /**
  * @param {Object}  Options:
+ *                      auth ('username:password')
  *                      host ('localhost')
  *                      port (80)
  *                      path ('')       - Base path URL e.g. '/api'
@@ -13,7 +14,8 @@ var http = require('http'),
  */
 var HttpClient = module.exports = function(options) {
     options = options || {};
-    
+
+    this.auth = options.auth || undefined;
     this.host = options.host || 'localhost';
     this.port = options.port || 80;
     this.path = options.path || '';
@@ -41,10 +43,10 @@ var methods = ['get', 'post', 'head', 'put', 'del', 'trace', 'options', 'connect
    * @param {Function} [cb=undefined]
    *   Callback that will be called after the http call. Receives the http response object.
    */
-methods.forEach(function(method) {    
+methods.forEach(function(method) {
     HttpClient.prototype[method] = function(assert, path, req, res, cb) {
         var self = this;
-        
+
         //Handle different signatures
         if (arguments.length == 3) {
             //(assert, path, cb)
@@ -53,7 +55,7 @@ methods.forEach(function(method) {
                 req = {};
                 res = {};
             }
-            
+
             //(assert, path, res)
             else {
                 cb = null;
@@ -61,7 +63,7 @@ methods.forEach(function(method) {
                 req = {};
             }
         }
-        
+
         //(assert, path, req, cb)
         if (arguments.length == 4) {
             if (typeof res == 'function') {
@@ -70,20 +72,20 @@ methods.forEach(function(method) {
             }
         }
 
-        //Also accepted: 
+        //Also accepted:
         //(assert, path, req, res)
         //(assert, path, req, res, cb)
-        
+
         //Generate path based on base path, route path and querystring params
         var fullPath = this.path + path;
 
         //Don't add to querystring if POST or PUT
         if (['post', 'put'].indexOf(method) === -1) {
             var data = req.data;
-            
+
             if (data) fullPath += '?' + querystring.stringify(data);
         }
-        
+
         var options = {
             host: this.host,
             port: this.port,
@@ -91,13 +93,20 @@ methods.forEach(function(method) {
             method: method == 'del' ? 'DELETE' : method.toUpperCase(),
             headers: underscore.extend({}, this.reqHeaders, req.headers)
         };
-        
+
+        if (req.auth) {
+          options.auth = req.auth;
+        }
+        else if (this.auth) {
+          options.auth = this.auth;
+        }
+
         var request = http.request(options);
-        
+
         //Write POST & PUTdata
         if (['post', 'put'].indexOf(method) != -1) {
             var data = req.data || req.body;
-            
+
             if (data) {
                 if (typeof data == 'object') {
                     request.setHeader('content-type', 'application/json');
@@ -107,20 +116,20 @@ methods.forEach(function(method) {
                 }
             }
         }
-        
+
         //Send
         request.end();
-        
+
         request.on('response', function(response) {
             response.setEncoding('utf8');
-            
+
             response.on('data', function(chunk) {
                 if (response.body)
                     response.body += chunk;
                 else
                     response.body = chunk;
             });
-            
+
             //Handle the response; run response tests and hand back control to test
             response.on('end', function() {
                 //Add parsed JSON
@@ -130,12 +139,12 @@ methods.forEach(function(method) {
                         response.data = JSON.parse(response.body);
                     }
                 }
-                
+
                 //Run tests on the response
                 (function testResponse() {
                     //Can pass in falsy value to prevent running tests
                     if (!assert) return;
-                    
+
                     //Status code
                     var status = res.status || self.status;
                     if (status) {
@@ -147,19 +156,19 @@ methods.forEach(function(method) {
                     for (var key in headers) {
                         assert.equal(response.headers[key], headers[key]);
                     }
-                    
+
                     //Body
                     if (res.body) {
                         assert.equal(response.body, res.body);
                     }
-                    
+
                     //JSON data
                     if (res.data) {
                         assert.deepEqual(response.data, res.data);
                     }
                 })();
-                
-                
+
+
                 //Done, return control to test
                 if (cb)
                     return cb(response);
