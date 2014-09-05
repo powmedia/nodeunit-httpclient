@@ -94,7 +94,10 @@ methods.forEach(function(method) {
             headers: underscore.extend({}, this.reqHeaders, req.headers)
         };
 
-        if (this.auth) {
+        if (req.auth) {
+          options.auth = req.auth;
+        }
+        else if (this.auth) {
           options.auth = this.auth;
         }
 
