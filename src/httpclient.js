@@ -1,5 +1,6 @@
 var querystring = require('querystring'),
-    underscore = require('underscore');
+    underscore = require('underscore'),
+	debug;
 
 
 /**
@@ -22,6 +23,7 @@ var HttpClient = module.exports = function(options) {
     this.headers = options.headers || {};
     this.status = options.status;
 	this.http = require(options.https ? 'https' : 'http');
+	debug = options.debug ? true : false;
 }
 
 HttpClient.create = function(options) {
@@ -117,11 +119,16 @@ methods.forEach(function(method) {
                 }
             }
         }
-
+		
+		if (debug) httpClientLogger.log('REQUEST', request);
         //Send
         request.end();
-
+		
         request.on('response', function(response) {
+			if (debug) httpClientLogger.log('RESPONSE', response);
+			
+			console.log('RESPONSE');
+			cosnole.log(response);
             response.setEncoding('utf8');
 
             response.on('data', function(chunk) {
@@ -179,3 +186,10 @@ methods.forEach(function(method) {
         });
     }
 });
+
+var httpClientLogger = {
+	log: function(header, data) {
+		console.log(header);
+		console.log(data);
+	}
+}
