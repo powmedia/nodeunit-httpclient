@@ -127,8 +127,6 @@ methods.forEach(function(method) {
         request.on('response', function(response) {
 			if (debug) httpClientLogger.log('RESPONSE', response);
 			
-			console.log('RESPONSE');
-			cosnole.log(response);
             response.setEncoding('utf8');
 
             response.on('data', function(chunk) {
