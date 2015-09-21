@@ -1,5 +1,4 @@
-var http = require('http'),
-    querystring = require('querystring'),
+var querystring = require('querystring'),
     underscore = require('underscore');
 
 
@@ -11,6 +10,7 @@ var http = require('http'),
  *                      path ('')       - Base path URL e.g. '/api'
  *                      headers ({})    - Test that these headers are present on every response (unless overridden)
  *                      status (null)   - Test that every response has this status (unless overridden)
+ *						https (false) 	- https/http
  */
 var HttpClient = module.exports = function(options) {
     options = options || {};
@@ -21,6 +21,7 @@ var HttpClient = module.exports = function(options) {
     this.path = options.path || '';
     this.headers = options.headers || {};
     this.status = options.status;
+	this.http = require(options.https ? 'https' : 'http');
 }
 
 HttpClient.create = function(options) {
@@ -101,7 +102,7 @@ methods.forEach(function(method) {
           options.auth = this.auth;
         }
 
-        var request = http.request(options);
+        var request = this.http.request(options);
 
         //Write POST & PUTdata
         if (['post', 'put'].indexOf(method) != -1) {
