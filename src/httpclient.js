@@ -148,6 +148,7 @@ methods.forEach(function(method) {
 						} catch (err) {
 							console.log('JSON.parse response.body error:');
 							console.log(err);
+							if (debug) httpClientLogger.log('RESPONSE.BODY', response.body);
 							var responseTest = response.body.split('{');
 							if (responseTest.length > 1) {
 								var actualResponse = '{' + responseTest[1];
@@ -157,6 +158,7 @@ methods.forEach(function(method) {
 								} catch (err) {
 									console.log('JSON.parse error on second parse attempt.');
 									console.log(err);
+									if (debug) httpClientLogger.log('FILTERED RESPONSE.BODY', actualResponse);
 								}
 							}
 						}
