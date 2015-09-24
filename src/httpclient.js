@@ -142,7 +142,24 @@ methods.forEach(function(method) {
                 var contentType = response.headers['content-type'];
                 if (contentType && contentType.indexOf('application/json') != -1) {
                     if (typeof response.body != 'undefined') {
-                        response.data = JSON.parse(response.body);
+                        //Catch errors on JSON.parse and attempt to handle cases where the response.body contains html
+						try {
+								response.data = JSON.parse(response.body);
+						} catch (err) {
+							console.log('JSON.parse response.body error:');
+							console.log(err);
+							var responseTest = response.body.split('{');
+							if (responseTest.length > 1) {
+								var actualResponse = '{' + responseTest[1];
+								try {
+									response.data = JSON.parse(actualResponse);
+									console.log('JSON.parse second attempt success.');
+								} catch (err) {
+									console.log('JSON.parse error on second parse attempt.');
+									console.log(err);
+								}
+							}
+						}
                     }
                 }
 
