@@ -1,6 +1,6 @@
-var http = require('http'),
-    querystring = require('querystring'),
-    underscore = require('underscore');
+var querystring = require('querystring'),
+    underscore = require('underscore'),
+	debug;
 
 
 /**
@@ -11,6 +11,7 @@ var http = require('http'),
  *                      path ('')       - Base path URL e.g. '/api'
  *                      headers ({})    - Test that these headers are present on every response (unless overridden)
  *                      status (null)   - Test that every response has this status (unless overridden)
+ *						https (false) 	- https/http
  */
 var HttpClient = module.exports = function(options) {
     options = options || {};
@@ -21,6 +22,8 @@ var HttpClient = module.exports = function(options) {
     this.path = options.path || '';
     this.headers = options.headers || {};
     this.status = options.status;
+	this.http = require(options.https ? 'https' : 'http');
+	debug = options.debug ? true : false;
 }
 
 HttpClient.create = function(options) {
@@ -101,7 +104,7 @@ methods.forEach(function(method) {
           options.auth = this.auth;
         }
 
-        var request = http.request(options);
+        var request = this.http.request(options);
 
         //Write POST & PUTdata
         if (['post', 'put'].indexOf(method) != -1) {
@@ -116,11 +119,14 @@ methods.forEach(function(method) {
                 }
             }
         }
-
+		
+		if (debug) httpClientLogger.log('REQUEST', request);
         //Send
         request.end();
-
+		
         request.on('response', function(response) {
+			if (debug) httpClientLogger.log('RESPONSE', response);
+			
             response.setEncoding('utf8');
 
             response.on('data', function(chunk) {
@@ -136,7 +142,26 @@ methods.forEach(function(method) {
                 var contentType = response.headers['content-type'];
                 if (contentType && contentType.indexOf('application/json') != -1) {
                     if (typeof response.body != 'undefined') {
-                        response.data = JSON.parse(response.body);
+                        //Catch errors on JSON.parse and attempt to handle cases where the response.body contains html
+						try {
+								response.data = JSON.parse(response.body);
+						} catch (err) {
+							console.log('JSON.parse response.body error:');
+							console.log(err);
+							if (debug) httpClientLogger.log('RESPONSE.BODY', response.body);
+							var responseTest = response.body.split('{');
+							if (responseTest.length > 1) {
+								var actualResponse = '{' + responseTest[1];
+								try {
+									response.data = JSON.parse(actualResponse);
+									console.log('JSON.parse second attempt success.');
+								} catch (err) {
+									console.log('JSON.parse error on second parse attempt.');
+									console.log(err);
+									if (debug) httpClientLogger.log('FILTERED RESPONSE.BODY', actualResponse);
+								}
+							}
+						}
                     }
                 }
 
@@ -178,3 +203,10 @@ methods.forEach(function(method) {
         });
     }
 });
+
+var httpClientLogger = {
+	log: function(header, data) {
+		console.log(header);
+		console.log(data);
+	}
+}
